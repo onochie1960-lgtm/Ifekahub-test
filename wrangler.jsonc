@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
-  "name": "buhakefi",
+  "name": "ifekahub-test",
   "main": "_worker.js",
   "compatibility_date": "2026-09-03",
   "workers_dev": false,
