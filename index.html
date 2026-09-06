@@ -4303,7 +4303,27 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{loadExternalRev
   </div>
 </div>
 
-<script>
+<script> window.toggleHubMenu=function(button){
+  const nav=button.closest('.hub-nav');
+  if(!nav)return;
+  const open=!nav.classList.contains('show');
+  nav.classList.toggle('show',open);
+  button.setAttribute('aria-expanded',open?'true':'false');
+  button.setAttribute('aria-label',open?'Close menu':'Open menu');
+  button.textContent=open?'✕':'☰';
+};
+
+window.closeHubMenu=function(){
+  const nav=document.querySelector('.hub-nav');
+  const button=nav?.querySelector('.hub-menu');
+  if(!nav)return;
+  nav.classList.remove('show');
+  if(button){
+    button.setAttribute('aria-expanded','false');
+    button.setAttribute('aria-label','Open menu');
+    button.textContent='☰';
+  }
+};
 document.addEventListener('DOMContentLoaded',()=>{
   const q=document.getElementById('ifekaSummaryQuality'); if(q)q.addEventListener('click',runIfekaEditorialQualityCheck);
   const t=document.getElementById('ifekaSummaryText'); if(t)t.addEventListener('input',()=>{updateIfekaSummaryStats();});
