@@ -843,7 +843,7 @@ body{padding-top:125px!important;}
       <a href="#about">ABOUT US</a>
       <a href="#admin">ADMIN</a>
       <a href="#monetize">💰 MONETIZE</a>
-      <button class="hub-menu" type="button" onclick="window.toggleHubMenu(this)"
+      <button class="hub-menu" type="button" onclick="toggleHubMenu(this)" aria-label="Open menu" aria-expanded="false">☰</button>
     </nav>
   </div>
 </header>
@@ -2007,7 +2007,7 @@ async function copyArticleLink(url, statusEl){
 
 
 
-window.toggleHubMenu=function(button){
+function toggleHubMenu(button){
   const nav=button.closest('.hub-nav');
   if(!nav) return;
   const open=!nav.classList.contains('show');
@@ -3887,8 +3887,8 @@ function makeOriginalEditorialDraft(title,src,target=getIfekaTargetWords()){
     let overlap=0;
     for(let j=0;j<w.length-5;j++){const phrase=w.slice(j,j+6).join(' ');if(phrase.length>24 && sourceWords.join(' ').includes(phrase)){overlap++;break;}}
     if(overlap){
-      x=x.replace(/^[A-Z][^]{2,70},\s*/,'').trim();
-    
+      x=`The source account adds that ${x.replace(/^[A-Z][^,]{2,70},\s*/,'')}`;
+    }
     const key=x.toLowerCase();
     if(seen.has(key))continue;seen.add(key);chosen.push(x);
   }
@@ -4303,27 +4303,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{loadExternalRev
   </div>
 </div>
 
-<script> window.toggleHubMenu=function(button){
-  const nav=button.closest('.hub-nav');
-  if(!nav)return;
-  const open=!nav.classList.contains('show');
-  nav.classList.toggle('show',open);
-  button.setAttribute('aria-expanded',open?'true':'false');
-  button.setAttribute('aria-label',open?'Close menu':'Open menu');
-  button.textContent=open?'✕':'☰';
-};
-
-window.closeHubMenu=function(){
-  const nav=document.querySelector('.hub-nav');
-  const button=nav?.querySelector('.hub-menu');
-  if(!nav)return;
-  nav.classList.remove('show');
-  if(button){
-    button.setAttribute('aria-expanded','false');
-    button.setAttribute('aria-label','Open menu');
-    button.textContent='☰';
-  }
-};
+<script>
 document.addEventListener('DOMContentLoaded',()=>{
   const q=document.getElementById('ifekaSummaryQuality'); if(q)q.addEventListener('click',runIfekaEditorialQualityCheck);
   const t=document.getElementById('ifekaSummaryText'); if(t)t.addEventListener('input',()=>{updateIfekaSummaryStats();});
