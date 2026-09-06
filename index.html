@@ -3887,8 +3887,8 @@ function makeOriginalEditorialDraft(title,src,target=getIfekaTargetWords()){
     let overlap=0;
     for(let j=0;j<w.length-5;j++){const phrase=w.slice(j,j+6).join(' ');if(phrase.length>24 && sourceWords.join(' ').includes(phrase)){overlap++;break;}}
     if(overlap){
-      x=`The source account adds that ${x.replace(/^[A-Z][^,]{2,70},\s*/,'')}`;
-    }
+      x=x.replace(/^[A-Z][^]{2,70},\s*/,'').trim();
+    
     const key=x.toLowerCase();
     if(seen.has(key))continue;seen.add(key);chosen.push(x);
   }
