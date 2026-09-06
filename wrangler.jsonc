@@ -3,7 +3,7 @@
   "name": "ifekahub-test",
   "main": "_worker.js",
   "compatibility_date": "2026-09-03",
-  "workers_dev": false,
+  "workers_dev": true,
   "keep_vars": true,
   "triggers": {
     "crons": ["*/10 * * * *"]
