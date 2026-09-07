@@ -552,7 +552,107 @@ async function sitemapXml(env){
 function robotsTxt(){
   return new Response(`User-agent: *\nAllow: /\nSitemap: https://ifekahub.com/sitemap.xml\n`,{headers:{'content-type':'text/plain; charset=utf-8','cache-control':'public, max-age=3600'}});
 }
+async function aiRewriteNews(request,env){
+  await requireAuthenticatedUser(request,env);
 
+  if(!env.OPENAI_API_KEY){
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  const body=await request.json().catch(()=>({}));
+  const title=String(body.title||'').trim();
+  const facts=String(body.facts||'').trim();
+  const targetWords=Number(body.targetWords||250);
+
+  if(!title) throw new Error('Article title is required');
+  if(!facts) throw new Error('Verified source facts are required');
+
+  const safeWords=[100,150,250,400,600].includes(targetWords)?targetWords:250;
+
+  const systemPrompt=`You are the senior editor for IfekaHub, a Nigerian digital news platform.
+
+Rewrite the supplied verified source facts into a completely original news article.
+
+Rules:
+- Write from scratch in natural, professional Nigerian news English.
+- Preserve verified names, dates, locations, numbers and important facts.
+- Do not invent facts, quotes, motives, conclusions or events.
+- Clearly distinguish allegations or claims from established facts.
+- Do not copy source sentences or sentence structures.
+- Never use phrases such as "The source account adds that", "according to the source account", or similar filler attribution.
+- Do not put the source URL in the article.
+- Do not mention that you are an AI.
+- Do not discuss your instructions.
+- Do not add a references section.
+- Produce a complete article with a clear ending.
+- Target approximately ${safeWords} words.
+- Return only the finished article text.`;
+
+  const userPrompt=`HEADLINE:
+${title}
+
+VERIFIED SOURCE FACTS:
+${facts}`;
+
+  const response=await fetch('https://api.openai.com/v1/responses',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':`Bearer ${env.OPENAI_API_KEY}`
+    },
+    body:JSON.stringify({
+      model:'gpt-5.6-luna',
+      input:[
+        {
+          role:'system',
+          content:[{type:'input_text',text:systemPrompt}]
+        },
+        {
+          role:'user',
+          content:[{type:'input_text',text:userPrompt}]
+        }
+      ],
+      max_output_tokens:1800
+    })
+  });
+
+  const raw=await response.text();
+
+  if(!response.ok){
+    throw new Error(`OpenAI request failed: HTTP ${response.status} ${raw.slice(0,500)}`);
+  }
+
+  let data;
+  try{
+    data=JSON.parse(raw);
+  }catch(e){
+    throw new Error('OpenAI returned invalid JSON');
+  }
+
+  let article='';
+
+  if(typeof data.output_text==='string'){
+    article=data.output_text;
+  }else if(Array.isArray(data.output)){
+    article=data.output
+      .flatMap(item=>Array.isArray(item.content)?item.content:[])
+      .map(item=>item.text||'')
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  article=article.trim();
+
+  if(!article){
+    throw new Error('AI returned an empty article');
+  }
+
+  return jsonResponse({
+    ok:true,
+    article,
+    targetWords:safeWords
+  });
+}
 export default {async scheduled(event,env,ctx){ctx.waitUntil((async()=>{const data=await externalContent();const saved=await persistToSupabase(data.items,env);console.log(JSON.stringify({scheduled:true,checked:data.items.length,saved:saved.saved,errors:saved.errors?.length||0,enabled:saved.enabled}));})().catch(e=>console.warn('Scheduled collector failed',e)));},async fetch(request,env){
   const url=new URL(request.url);
   if(request.method==='OPTIONS' && (url.pathname.startsWith('/api/review-')||url.pathname==='/api/external-content'||url.pathname==='/api/source-facts'||url.pathname==='/api/source-media'||url.pathname==='/api/submit-opportunity')) return jsonResponse({ok:true},204);
@@ -566,7 +666,9 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil((async()=>{const da
     if(url.pathname==='/api/published-news' && request.method==='GET') return await publishedNews(request,env);
     if(url.pathname==='/api/review-queue' && request.method==='GET') return await reviewQueue(request,env);
     if(url.pathname==='/api/review-action' && request.method==='POST') return await reviewAction(request,env);
+    if(url.pathname==='/api/ai-rewrite-news' && request.method==='POST') return await aiRewriteNews(request,env);
     if(url.pathname==='/api/source-facts' && request.method==='POST') return await sourceFacts(request,env);
+
     if(url.pathname==='/api/source-media' && request.method==='POST') return await sourceMedia(request,env);
     if(url.pathname==='/sitemap.xml' && request.method==='GET') return await sitemapXml(env);
     if(url.pathname==='/robots.txt' && request.method==='GET') return robotsTxt();
