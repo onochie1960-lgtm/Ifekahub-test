@@ -3909,7 +3909,33 @@ async function generateIfekaSummaryStarter(){
   if(src.length<350 && ifekaPendingNewsApproval.sourceUrl){ await fetchIfekaSourceFacts(); src=getIfekaSourceMaterial(); }
   if(!src){alert('Fetch the source facts first, or paste the verified key facts from the original source.');return;}
   const target=getIfekaTargetWords();
-  const draft=makeOriginalEditorialDraft(title,src,target);
+  const {data:{session}}=await db.auth.getSession();
+if(!session){
+  alert('Please log in again before using AI rewriting.');
+  return;
+}
+
+const aiResponse=await fetch('/api/ai-rewrite-news',{
+  method:'POST',
+  headers:{
+    'Content-Type':'application/json',
+    'Authorization':`Bearer ${session.access_token}`
+  },
+  body:JSON.stringify({
+    title,
+    facts:src,
+    targetWords:target
+  })
+});
+
+const aiResult=await aiResponse.json().catch(()=>({}));
+
+if(!aiResponse.ok||!aiResult.ok){
+  alert(aiResult.error||'AI rewriting failed. Please try again.');
+  return;
+}
+
+const draft=String(aiResult.article||'').trim();
   if(!draft){alert('Not enough factual material was found to build a draft.');return;}
   t.value=draft; t.focus(); updateIfekaSummaryStats(); runIfekaEditorialQualityCheck();
 }
