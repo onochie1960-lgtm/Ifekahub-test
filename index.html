@@ -137,6 +137,11 @@
   .hub-nav.show a[href="#admin"]{color:#fff;background:#12345f;border-left:4px solid var(--hub-orange)}
   .hub-nav.show .hub-menu{position:sticky!important;top:0!important;align-self:flex-end;flex:0 0 42px;margin:0 -50px 0 0;width:48px!important;height:42px!important;}
   .hub-nav.show .hub-menu{top:8px;right:8px;position:absolute;background:var(--hub-navy2);font-size:28px}
+  .hub-nav.show{
+  overflow:visible!important;
+  height:auto!important;
+  max-height:none!important;
+}
 }
 @media(min-width:701px) and (max-width:900px){
   .hub-nav.show a,.hub-nav.show a:nth-child(n){display:block!important}
@@ -4331,9 +4336,72 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{loadExternalRev
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  const q=document.getElementById('ifekaSummaryQuality'); if(q)q.addEventListener('click',runIfekaEditorialQualityCheck);
-  const t=document.getElementById('ifekaSummaryText'); if(t)t.addEventListener('input',()=>{updateIfekaSummaryStats();});
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  /* Editorial quality checker */
+  const q = document.getElementById('ifekaQuality');
+  if(q){
+    q.addEventListener('click', runIfekaEditorialQualityCheck);
+  }
+
+  const t = document.getElementById('ifekaSummaryText');
+  if(t){
+    t.addEventListener('input', function(){
+      updateIfekaSummaryStats();
+    });
+  }
+
+  /* IfekaHub mobile hamburger menu */
+  const nav = document.querySelector('.hub-nav');
+  const menu = document.querySelector('.hub-menu');
+
+  if(nav && menu){
+
+    menu.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+
+      const isOpen = nav.classList.toggle('show');
+
+      menu.setAttribute(
+        'aria-expanded',
+        isOpen ? 'true' : 'false'
+      );
+
+      menu.setAttribute(
+        'aria-label',
+        isOpen ? 'Close menu' : 'Open menu'
+      );
+
+      menu.textContent = isOpen ? '✕' : '☰';
+    });
+
+    /* Close menu when a navigation link is selected */
+    nav.querySelectorAll('a').forEach(function(link){
+
+      link.addEventListener('click', function(){
+
+        nav.classList.remove('show');
+
+        menu.setAttribute('aria-expanded','false');
+        menu.setAttribute('aria-label','Open menu');
+        menu.textContent = '☰';
+
+        /* Close an open news article safely */
+        const articleClose =
+          document.querySelector('.article-close');
+
+        if(articleClose){
+          articleClose.click();
+        }
+
+      });
+
+    });
+
+  }
+
 });
 </script>
 </body></html>
