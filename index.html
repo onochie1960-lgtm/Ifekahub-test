@@ -829,10 +829,11 @@ body{padding-top:125px!important;}
   </div>
   <div class="hub-nav-wrap">
     <nav class="hub-nav">
-      <a class="active" href="#home">⌂ <span>HOME</span></a>
-      <a href="#blog">NEWS</a>
-      <a href="#property">REAL ESTATE</a>
-      <a class="jobs-nav-link" href="#opportunities">💼 JOBS</a>
+      <a class="active" href="#home" onclick="closeArticle()">⌂ <span>HOME</span></a>
+<a href="#blog" onclick="closeArticle()">NEWS</a>
+<a href="#property" onclick="closeArticle()">REAL ESTATE</a>
+<a class="jobs-nav-link" href="#opportunities" onclick="closeArticle()">💼 JOBS</a>
+      
       <a href="#electronics">ELECTRONICS</a>
       <a href="#survey">LAND SURVEYING</a>
       <a href="#sofas">SOFAS & FURNITURE</a>
@@ -843,7 +844,7 @@ body{padding-top:125px!important;}
       <a href="#about">ABOUT US</a>
       <a href="#admin">ADMIN</a>
       <a href="#monetize">💰 MONETIZE</a>
-      <button class="hub-menu" type="button" onclick="toggleHubMenu(this)" aria-label="Open menu" aria-expanded="false">☰</button>
+      <button class="hub-menu" type="button" onclick="closeArticle();toggleHubMenu(this)" aria-label="Open menu" aria-expanded="false">☰</button>
     </nav>
   </div>
 </header>
