@@ -2124,6 +2124,20 @@ function openArticle(p){
         <h1 class="article-title">${esc(p.title)}</h1>
         <div class="article-meta">By ${esc(p.author||'Ifeka')} • Source: ${esc(p.source_name||'IfekaHub')}</div>
         <div class="article-content">${esc(cleanArticleText(p.content||''))}</div>
+        <div class="article-content">${esc(cleanArticleText(p.content||''))}</div>
+
+<!-- IFEKAHUB GOOGLE ADSENSE AD -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-2471730445591912"
+     data-ad-slot="547158596"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+${p.source_url ? `<div class="article-source-link"><a href="${esc(p.source_url)}"...
         ${p.source_url ? `<div class="article-source-link"><a href="${esc(p.source_url)}" target="_blank" rel="noopener noreferrer">Read Full Story → Original Source</a></div>` : ''}${articleImagesMarkup(p.content||'')}
         ${renderMoreNewsForArticle(p)}
         <div class="share-row">
