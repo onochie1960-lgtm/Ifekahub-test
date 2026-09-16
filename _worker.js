@@ -123,17 +123,21 @@ async function persistToSupabase(items,env){
         const provider=group[0].source_name||'External Source';
         const source='External: '+provider;
         const titles=group.map(x=>x.title).filter(Boolean);
-        const params=new URLSearchParams({select:'title',provider:`eq.${provider}`,limit:'200'});
-        const q=await fetch(`${base}/rest/v1/opportunities?${params.toString()}`,{headers:h});
-        if(!q.ok){const body=await q.text().catch(()=> '');throw new Error(`opportunities lookup HTTP ${q.status}${body?`: ${body.slice(0,500)}`:''}`);}
-        const existingRows=await q.json();
+        const params=new URLSearchParams({
+  select:'title',
+  limit:'1000'
+});
 
-const normalizeTitle=s=>String(s||'')
-  .toLowerCase()
-  .replace(/&/g,' and ')
-  .replace(/[^a-z0-9]+/g,' ')
-  .replace(/\s+/g,' ')
-  .trim();
+const q=await fetch(`${base}/rest/v1/opportunities?${params.toString()}`,{
+  headers:h
+});
+
+if(!q.ok){
+  const body=await q.text().catch(()=>'');
+  throw new Error(`opportunities lookup HTTP ${q.status} ${body}`);
+}
+
+const existingRows=await q.json();
 
 const existing=new Set(
   existingRows
@@ -142,19 +146,45 @@ const existing=new Set(
 );
 
 const fresh=[];
+
 for(const x of group){
   const key=normalizeTitle(x.title);
+
   if(!key || existing.has(key)) continue;
+
   existing.add(key);
   fresh.push(x);
+}
 
+skipped+=group.length-fresh.length;
+
+if(!fresh.length) continue;
+
+const payload=fresh.map(x=>({
+  title:x.title,
+  provider:x.source_name||provider,
+  source:source,
+  url:x.source_url||x.url||null,
+  status:'PENDING',
+  created_at:new Date().toISOString()
+}));
+
+const ins=await fetch(`${base}/rest/v1/opportunities`,{
+  method:'POST',
+  headers:{
+    ...h,
+    'Content-Type':'application/json',
+    'Prefer':'return=minimal'
+  },
+  body:JSON.stringify(payload)
 });
-        skipped+=group.length-fresh.length;
-        if(!fresh.length)continue;
-        const payload=fresh.map(x=>({title:x.title,provider:x.source_name||'External Source',category:x.category||'Government',location:x.location||'Nigeria',deadline:x.deadline||null,application_url:x.source_url||'',source,description:x.summary||'Official opportunity collected for admin review.',featured:false,is_active:false,approval_status:'pending',status:'Pending',published:false}));
-        const ins=await fetch(`${base}/rest/v1/opportunities`,{method:'POST',headers:{...h,Prefer:'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify(payload)});
-        if(!ins.ok){const body=await ins.text().catch(()=> '');throw new Error(`opportunities bulk insert HTTP ${ins.status}${body?`: ${body.slice(0,500)}`:''}`);}
-        saved+=fresh.length;
+
+if(!ins.ok){
+  const body=await ins.text().catch(()=>'');
+  throw new Error(`opportunities bulk insert HTTP ${ins.status} ${body}`);
+}
+
+saved+=fresh.length;
       }else{
         const sourceName=group[0].source_name||'External Source';
         const params=new URLSearchParams({select:'source_url',limit:'500'});
