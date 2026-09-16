@@ -127,8 +127,28 @@ async function persistToSupabase(items,env){
         const q=await fetch(`${base}/rest/v1/opportunities?${params.toString()}`,{headers:h});
         if(!q.ok){const body=await q.text().catch(()=> '');throw new Error(`opportunities lookup HTTP ${q.status}${body?`: ${body.slice(0,500)}`:''}`);}
         const existingRows=await q.json();
-        const existing=new Set(existingRows.map(r=>r.title));
-        const fresh=group.filter(x=>x.title&&!existing.has(x.title));
+
+const normalizeTitle=s=>String(s||'')
+  .toLowerCase()
+  .replace(/&/g,' and ')
+  .replace(/[^a-z0-9]+/g,' ')
+  .replace(/\s+/g,' ')
+  .trim();
+
+const existing=new Set(
+  existingRows
+    .map(r=>normalizeTitle(r.title))
+    .filter(Boolean)
+);
+
+const fresh=[];
+for(const x of group){
+  const key=normalizeTitle(x.title);
+  if(!key || existing.has(key)) continue;
+  existing.add(key);
+  fresh.push(x);
+
+});
         skipped+=group.length-fresh.length;
         if(!fresh.length)continue;
         const payload=fresh.map(x=>({title:x.title,provider:x.source_name||'External Source',category:x.category||'Government',location:x.location||'Nigeria',deadline:x.deadline||null,application_url:x.source_url||'',source,description:x.summary||'Official opportunity collected for admin review.',featured:false,is_active:false,approval_status:'pending',status:'Pending',published:false}));
