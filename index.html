@@ -139,9 +139,23 @@
   .hub-nav.show .hub-menu{position:sticky!important;top:0!important;align-self:flex-end;flex:0 0 42px;margin:0 -50px 0 0;width:48px!important;height:42px!important;}
   .hub-nav.show .hub-menu{top:8px;right:8px;position:absolute;background:var(--hub-navy2);font-size:28px}
   .hub-nav.show{
-  overflow:visible!important;
-  height:auto!important;
-  max-height:none!important;
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    width:100%!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    z-index:99999!important;
+    box-sizing:border-box!important;
+    padding-bottom:30px!important;
 }
 }
 @media(min-width:701px) and (max-width:900px){
