@@ -2070,8 +2070,24 @@ function markIfekaContentSeen(){
 async function checkSession(){const {data}=await db.auth.getSession();showAdmin(data.session)}
 function showAdmin(session){const loginBox=el('loginBox'),adminBox=el('adminBox');if(loginBox)loginBox.classList.toggle('hidden',!!session);if(adminBox)adminBox.classList.toggle('hidden',!session);if(session){setText('adminUser','Logged in as: '+(session.user.email||'Ifeka admin'));loadAdminPosts();checkStorage();const ob=el('opportunityAdminBox');if(ob)ob.classList.remove('hidden');loadAdminOpportunities();startIfekaContentMonitor();if(typeof secureOpportunityAdmin==='function')secureOpportunityAdmin();}else{if(ifekaNotificationTimer)clearInterval(ifekaNotificationTimer);ifekaNotificationTimer=null;if(typeof secureOpportunityAdmin==='function')secureOpportunityAdmin();}}
 db.auth.onAuthStateChange((_e,s)=>{showAdmin(s);secureOpportunityAdmin();});
-async function adminLogin(e){e.preventDefault();const m=document.getElementById('loginMessage');m.className='notice';m.textContent='Logging in...';const {error}=await db.auth.signInWithPassword({email:document.getElementById('loginEmail').value.trim(),password:document.getElementById('loginPassword').value});if(error){m.className='notice error';m.textContent='Login failed: '+error.message;}else{m.textContent='Login successful.';}}
-async function adminLogout(){await db.auth.signOut();}
+async function adminLogin(e){
+  e.preventDefault();
+  const m=document.getElementById('loginMessage');
+  m.className='notice';
+  m.textContent='Logging in...';
+  try{
+    const {data,error}=await db.auth.signInWithPassword({
+      email:document.getElementById('loginEmail').value.trim(),
+      password:document.getElementById('loginPassword').value
+    });
+    if(error) throw error;
+    m.className='notice';
+    m.textContent='Login successful.';
+  }catch(error){
+    m.className='notice error';
+    m.textContent='Login failed: '+(error.message||String(error));
+  }
+}
 
 let allNewsPosts = [];
 
